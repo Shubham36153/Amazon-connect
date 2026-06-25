@@ -1,0 +1,49 @@
+import json
+import boto3
+
+# Connect to DynamoDB
+dynamodb = boto3.resource('dynamodb')
+
+# DynamoDB table name
+table = dynamodb.Table('E-Commerce')
+
+def handler(event, context):
+
+    print(event)
+
+    # Get OrderID from Amazon Connect
+    orderid = event['Details']['Parameters']['OrderID']
+
+    # Convert lowercase to uppercase
+    orderid = orderid.upper()
+
+    print("OrderID:", orderid)
+
+    # Fetch item from DynamoDB
+    response = table.get_item(
+        Key={
+            'OrderID': orderid
+        }
+    )
+
+    print(response)
+
+    item = response.get('Item')
+
+    # If item exists
+    if item:
+
+        product = item.get('ProductName')
+
+        status = item.get('OrderStatus')
+
+        return {
+            'Message': f"Your order for {product} is currently {status}"
+        }
+
+    # If item not found
+    else:
+
+        return {
+            'Message': "Order ID not found"
+        }
